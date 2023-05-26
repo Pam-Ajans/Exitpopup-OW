@@ -1,0 +1,260 @@
+<title>Modal Popup</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    .pamModal {
+        width: 60%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        z-index: 99;
+        height: 100%;
+        padding-top: 75px;
+        margin: 0 auto;
+    }
+
+    .pamModal-content {
+        position: relative;
+        margin: auto;
+        width: 100%;
+    }
+
+    .pamModal-close {
+        color: #fff;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .pamModal-close:hover,
+    .pamModal-close:focus {
+        color: #838383;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .ProductListPam.BestSellersPam ul {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        height: auto;
+        padding: 0;
+        margin: 0 auto;
+    }
+
+    .ProductListPam.BestSellersPam ul li {
+        width: 100%;
+    }
+
+    ul.ulProductSliderPam {
+        list-style-type: none;
+    }
+
+    .ProductListPam .firstLine {
+        text-align: center;
+        padding: 10px 0;
+        font-weight: 200;
+        font-size: 13px;
+        background: black;
+        color: white;
+    }
+
+    .ProductListPam .productName.detailUrl {
+        margin: 5px 0;
+    }
+
+    .ProductListPam .productName.detailUrl a {
+        font-size: 13px;
+        color: white;
+    }
+
+
+    .ProductListPam .regularPrice {
+        color: white;
+    }
+
+    .ProductListPam span.discountKdv,
+    .ProductListPam span.regularKdv {
+        display: none;
+    }
+
+    .ProductListPam .productPrice.IndirimVar {
+        display: flex;
+    }
+
+    .ProductListPam .productPrice.IndirimVar {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    .ProductListPam .regularPrice {
+        display: none;
+    }
+
+    .ProductListPam .discountPrice {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .ProductListPam .mycartIcon.tip {
+        display: none;
+    }
+
+    .ProductListPam .productIcon {
+        display: none;
+    }
+
+    .productItemPam {
+        position: relative;
+    }
+
+    .productItemPam .productDetail.videoAutoPlay {
+        position: absolute;
+        bottom: 0px;
+        padding: 15px;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background: linear-gradient(to top, rgb(0 0 0 / 86%), rgb(0 0 0 / 0%));
+    }
+
+    ul.ulProductSliderPam .owl-prev {
+        font-size: 40px;
+        color: white;
+        left: 0;
+        position: absolute;
+    }
+
+    ul.ulProductSliderPam .owl-next {
+        font-size: 40px;
+        color: white;
+        right: 0;
+        position: absolute;
+    }
+
+    ul.ulProductSliderPam .owl-next.disabled,
+    ul.ulProductSliderPam .owl-prev.disabled {
+        display: none;
+    }
+
+    @media screen and (max-width:768px) {
+        .pamModal {
+            width: 80%;
+        }
+    }
+</style>
+
+<script id="PamAjansProducts" type="text/x-handlebars-template">
+    <div class="sliderBannerContainerPam">
+        <div class="ProductListPam BestSellersPam">
+            <div class="jCarouselLitePam">
+                <div class="CategoryNamePam">
+                    <div class="boldPam">
+                        <div class="firstLine"><span>ÇIKMADAN ÖNCE ÇOK SATANLARI KEŞFET</span></div>
+                    </div>
+                </div>
+                <ul class="ulProductSliderPam owl-carousel">
+                    {{#each products}}
+                    <li>
+                        <div class="productItemPam"> {{> productItemPam }} </div>
+                    </li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</script>
+
+<div class="pamModal">
+    <div class="pamModal-content">
+        <span class="pamModal-close">&times;</span>
+        <div class="PamHomeProductListContent">
+            <div class="PamHomeProductList-Product">
+                <div id="PamBestSellerProductList">&nbsp;</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var exitIntentDetected = false;
+
+        $(document).mousemove(function (e) {
+            if (e.clientY <= 5) {
+                if (!exitIntentDetected) {
+                    showModal();
+                }
+            }
+        });
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden && !exitIntentDetected) {
+                showModal();
+            }
+        });
+
+        $(".pamModal-close").click(function () {
+            $('.pamModal').hide();
+        });
+
+        function showModal() {
+            var today = new Date();
+            var dateString = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+            var hasSeenModal = localStorage.getItem(dateString);
+
+            if (hasSeenModal !== null) {
+                return;
+            }
+
+            exitIntentDetected = true;
+            var templateTab = $("#PamAjansProducts").html();
+            $.get("/Templates/100/Urun/UrunItem.html", function (data) {
+                Handlebars.registerPartial("productItemPam", data);
+                var filterModel = createProductFilterModel();
+                filterModel.filter.CategoryIdList.push(68);
+                filterModel.paging.PageItemCount = 10;
+                createProductDiv(1, filterModel, templateTab, "PamBestSellerProductList");
+                $('.pamModal').css('display', 'flex');
+
+                setTimeout(function () {
+                    $("ul.ulProductSliderPam").owlCarousel({
+                        loop: false,
+                        nav: true,
+                        dots: false,
+                        autoplay: false,
+                        items: 4,
+                        responsive: {
+                            0: {
+                                items: 2
+                            },
+                            900: {
+                                items: 3
+                            },
+                            1200: {
+                                items: 4
+                            }
+                        }
+                    });
+
+                    $("img.lazyImage").each(function () {
+                        $(this).attr("src", $(this).data("original"));
+                    });
+                }, 200);
+
+            });
+
+            localStorage.setItem(dateString, 'true');
+        }
+
+        $(".pamModal-close").click(function () {
+            $('.pamModal').hide();
+        });
+    });
+</script>
